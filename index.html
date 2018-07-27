@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>chat</title>
+    <script type="text/javascript">
+        var htmlWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        if(htmlWidth >750) {htmlWidth = 750};
+        var htmlDom = document.getElementsByTagName('html')[0];
+        htmlDom.style.fontSize = htmlWidth / 20 + 'px';
+    </script>
+    <link rel="stylesheet" type="text/css" href="./index.css">
+</head>
+<body>
+    <div class="container">
+        <canvas id="emoji" class="emoji"></canvas>
+        <div class="chat" id="chat">
+            <div class="scroll-content">
+                <div class="chat-content" id="chatContent">
+                </div>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="outer">
+                <div class="box"></div>
+            </div>
+            <div class="input-wrapper" onclick="askQuestion()">
+                <p>点击提问</p>
+                <img src="./images/arrow.png" id="arrow"/>
+            </div>
+            <div class="choice-wrapper">
+                <ul class="first-choice" style="display: none" id="first-choice">
+                    <li class="li-choice li-3" data-id="1">尺寸多大</li>
+                    <li class="li-choice li-3" data-id="2">存储多大</li>
+                    <li class="li-choice li-3" data-id="3">电量多大</li>
+                    <li class="li-choice li-3" data-id="4">配置价格</li>
+                    <li class="li-choice li-3" data-id="5">文颜值</li>
+                    <li class="li-choice li-3" data-id="6">怎么买</li>
+                    <li class="li-choice li-3" data-id="7">我是彩蛋</li>
+                    <li class="li-choice li-3" data-id="8">尺寸多大</li>
+                    <li class="li-choice li-3" data-id="9">尺寸多大</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="full-picture" id="fullPicture">
+        <div class="picture">
+            <img />
+        </div>
+    </div>
+    <script type="text/javascript">
+        
+        var answerQuestions = [
+            {headImg: './images/head.png',authorName: '雷军',message: '小米的朋友你好，are you ok？',type: 'plain',position: 'left'},//type: 'plain'正常的文档，picture图片
+            { headImg: './images/head.png', authorName: '小米市场黎万强', message: '欢迎小米的朋友<img src="./images/welcome.gif"><img src="./images/welcome.gif">', type: 'plain', position: 'left' },
+            { headImg: './images/head.png', authorName: '小米网林冰', message: '欢迎小米的朋友<img src="./images/welcome.gif"><img src="./images/welcome.gif">', type: 'plain' , position: 'left'},
+            { headImg: './images/head.png', authorName: '手机研发周光平', message: '欢迎小米的朋友<img src="./images/welcome.gif"><img src="./images/welcome.gif">', type: 'plain', position: 'left' },
+            { headImg: './images/head.png', authorName: '雷军', message: '我们刚刚发布了小米MAX，先发几张美图和外观视频，你欣赏一下', type: 'plain', position: 'left' },
+            { headImg: './images/head.png', authorName: '雷军', message: '想了解啥尽管问吧', type: 'plain', position: 'left' },
+        ]
+
+        var answerObj = [
+            { 
+                id:1,
+                answers: [
+                    { headImg: './images/head.png', authorName: '手机研发周光平', message: '欢迎小米的朋友', type: 'plain', position: 'left' },
+                    { headImg: './images/head.png', authorName: '雷军', message: '我们刚刚发布了小米MAX，先发几张美图和外观视频，你欣赏一下', type: 'plain', position: 'left' },
+                    { headImg: './images/head.png', authorName: '雷军', message: '想了解啥尽管问吧', type: 'plain', position: 'left' }
+                ]    
+            },
+            {
+                id: 2,
+                answers: [
+                    { headImg: './images/head.png', authorName: '手机研发周光平', message: './images/mi.jpg', type: 'picture', position: 'left' },
+                    { headImg: './images/head.png', authorName: '手机研发周光平', message: './images/mi.jpg', type: 'picture', position: 'left' },
+                    { headImg: './images/head.png', authorName: '手机研发周光平', message: './images/mi.jpg', type: 'picture', position: 'left' },
+                ]
+            }
+        ]
+        var myQuestion = {message: '',position: 'right'}
+        var flag = true;//是否点击了提问
+        var isSendMsg = false;//是否发送了消息
+        var chat = document.getElementById('chat');
+        var scrollContent = document.getElementsByClassName('scroll-content')[0];
+        var chatContent = document.getElementById('chatContent');
+        var btn = document.getElementById('arrow');
+        var inputWrapper = document.getElementsByClassName('input-wrapper')[0];
+        var choiceWrapper = document.getElementsByClassName('choice-wrapper')[0];
+        var firstChoice = document.getElementsByClassName('first-choice')[0];
+
+        function askQuestion() {//点击提问
+            if(flag && !isSendMsg){
+                btn.style.transform = 'rotate(180deg)';
+                choiceWrapper.className += ' open';
+                inputWrapper.className += ' open';
+                firstChoice.style.display = 'block';
+                 var height = firstChoice.offsetHeight;
+                 chat.style.marginBottom = height + 'px';               
+                flag = false;
+            }else{
+                btn.style.transform = 'rotate(0)';
+                choiceWrapper.classList.remove('open')
+                inputWrapper.classList.remove('open')
+                firstChoice.style.display = 'none';
+                chat.style.marginBottom = '0'
+                flag = true;
+            }
+            scrollContent.scrollTop = scrollContent.scrollHeight;
+        }
+
+        function createDiv(messageObj) {
+            var child = null
+            if(messageObj.position == 'left'){
+                var tag = messageObj.type == 'plain' ? '<pre>' + messageObj.message + '</pre>': '<img class="chat-img" src=" ' +messageObj.message+ '" />'
+                var bubble = messageObj.type == 'plain' ? 'bubble-default' : 'bubble-image';
+                child = `
+                    <div class="message others">
+                        <div class="head-img">
+                            <img src="${messageObj.headImg}" alt="头像" />
+                        </div>
+                        <div class="content">
+                            <p class="author-name">${messageObj.authorName}</p>
+                            <div class="bubble ${bubble} left" >
+                                <div class="bubble-cont">
+                                    <div class="${messageObj.type}">
+                                        ${tag}
+                                    <div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `    
+            }else{
+                child = `
+                    <div class="message me">
+                        <div class="head-img">
+                            <img src="./images/me.png" alt="头像" />
+                        </div>
+                        <div class="content">
+                            <p class="author-name">小米的朋友</p>
+                            <div class="bubble bubble-default right" >
+                                <div class="bubble-cont">
+                                    <div class="plain">
+                                        <pre>${ messageObj.message}</pre>
+                                    <div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `    
+            }
+            var oDiv = document.createElement('div');
+            oDiv.className = 'clearfix';
+            oDiv.innerHTML = child;
+            chatContent.appendChild(oDiv)
+        }
+        window.onload = function() {
+            var htmlWidth = document.documentElement.clientWidth || document.body.clientWidth;
+            var htmlHeight = document.documentElement.clientHeight || document.body.clientHeight;
+            var emoji = document.getElementById('emoji');
+            emoji.setAttribute('width',htmlWidth);
+            emoji.setAttribute('height', htmlHeight);            
+            var ctx = emoji.getContext('2d');
+            var img = './images/welcome.gif';
+            var totalEmoji = [],num = 20,speed = 5;
+            var l = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || window.oRequestAnimationFrame || function (window) {
+                setTimeout(window, 1000 / 60)
+            }
+            function makeEmoji() {
+                for(var n = 0;n<num;n ++) {
+                    totalEmoji.push(new Emoji(htmlWidth,htmlHeight,speed,img))
+                }
+                console.log(totalEmoji)
+            }
+            function Emoji(w,h,speed,img){
+                this.x = Math.floor(Math.random() * w);
+                this.y = Math.floor(Math.random() * 1.5 * h) -1.5* h;
+                this.speed = 2 * Math.random() + speed;
+                this.emojiImage = img;
+                this.velY = this.speed;
+                this.velX = 0;
+                this.stepSize = Math.random() / 30;
+                this.step = 0;
+            }
+            Emoji.prototype.update = function() {
+                this.x;
+                this.y;
+                this.velX *= 0.98;
+                this.velY <= this.speed && (this.velY = this.speed);
+                this.velX += Math.cos(this.step += .05) * this.stepSize * 5;
+                this.y += this.velY;
+                 this.x += this.velX
+            }
+            Emoji.prototype.render = function() {
+                var img = new Image();
+                img.src = this.emojiImage;
+                ctx.drawImage(img,this.x,this.y,50,50)
+            }
+            function start() {
+                ctx.clearRect(0,0,htmlWidth,htmlHeight);
+                for(var i = 0;i< num;i ++){
+                    totalEmoji[i].update()
+                    totalEmoji[i].render()
+                }
+                l(function() {
+                    start()
+                })
+            }
+            makeEmoji();
+            start()
+            var firstChoice = document.getElementById('first-choice');
+            firstChoice.onclick = function(e){
+                var e = e || window.event;
+                var target = e.target || e.srcElement;
+                if(target.classList == 'li-choice li-3'){
+                    target.classList.add('disabled');//给提问过的标签加灰色背景
+                    btn.style.transform = 'rotate(0)';
+                    choiceWrapper.classList.remove('open')
+                    inputWrapper.classList.remove('open')
+                    firstChoice.style.display = 'none';
+                    chat.style.marginBottom = '0';
+                    switch (target.getAttribute('data-id')) {
+                        case '1':
+                            myQuestion.message = '据说小米max尺寸很大';
+                            createDiv(myQuestion);
+                            sendMsg(answerObj[0].answers)
+                            break;
+                        case '2':
+                            myQuestion.message = '据说小米max存储量很大';
+                            createDiv(myQuestion);
+                            sendMsg(answerObj[1].answers);
+                            break;
+                        case '3':
+                            myQuestion.message = '据说小米Max的电量很大?';
+                            createDiv(myQuestion);
+                            sendMsg(answerObj[2].answers);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                scrollContent.scrollTop = scrollContent.scrollHeight;
+
+            }
+            var index = 0;
+            function sendMsg(obj){
+                isSendMsg = true;
+                var time = Math.random() * 2500;
+                setTimeout(() => {
+                    createDiv(obj[index]);
+                    index++;
+                    if(index <= obj.length-1){
+                        sendMsg(obj)
+                    }else{
+                        index = 0;
+                        isSendMsg = false;
+                    }
+                    scrollContent.scrollTop = scrollContent.scrollHeight;    
+                },time)
+            }
+            sendMsg(answerQuestions)
+
+            //监听图片点击事件，图片放大到全屏
+            chatContent.addEventListener('click',function(e){
+                var e = e || window.event;
+                var target = e.target || e.srcElement;
+                if(target.nodeName.toLowerCase() === 'img'){
+                    var imgSrc = target.getAttribute('src');
+                    var fullPicture = document.getElementById('fullPicture');
+                    fullPicture.style.display = 'block';
+                    fullPicture.children[0].children[0].setAttribute('src', imgSrc);
+                }
+            })
+            //点击图片放大区域，让遮罩层隐藏
+            document.getElementById('fullPicture').addEventListener('click',function(){
+                document.getElementById('fullPicture').style.display = 'none'
+            })
+        }
+    </script>
+</body>
+</html>
